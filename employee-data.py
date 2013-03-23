@@ -59,7 +59,7 @@ for item in invoice_row_data:
 
 # Create Invoice class so you can instantiate a new invoice and not have to worry with things like "invoice[3]" to pull values
 class Invoice:
-  def __init__(self, invoice_number, customer_name, date, lead, amount, agreements_sold, service_type, callback, callback_date, callback_notes):
+  def __init__(self, invoice_number, customer_name, date, lead, amount, agreements_sold, service_type, callback, callback_date, callback_notes, no_money):
     self.invoice_number=int(invoice_number) #converts invoice_number data to integer, because it's imported as a string
     self.customer_name=customer_name
     self.amount=float(amount) # amount is floated because it's a decimal, otherwise you end up with a lot of rounded numbers.
@@ -70,27 +70,28 @@ class Invoice:
     self.callback=callback
     self.callback_date=callback_date
     self.callback_notes=callback_notes
+    self.no_money=no_money 
 
 # Create Employee class so you can instantiate employee time records without worryiing about things like "employee[5]" to pull values
 class Employee:
-  def __init__(self, employee_name, invoice_number, hours_sold, hours_billed, date):
+  def __init__(self, employee_name, invoice_number): #, hours_sold, hours_billed, date):
     self.employee_name=employee_name
     self.invoice_number=int(invoice_number)
-    self.hours_sold=float(hours_sold)
-    self.hours_billed=float(hours_billed)
-    self.date=date
+#    self.hours_sold=float(hours_sold)
+#    self.hours_billed=float(hours_billed)
+#    self.date=date
 
 # The following two for loops iterate over the data we first pulled from the spreadsheet, and creates
 # an array of employee time cards and an array of invoices, that will let us call invoice[3].customer_name, etc
 for employee in time_row_data:
 #  print employee
   stripped_date=employee[5].lstrip("'")
-  new_employee_time_card=Employee(employee[1], employee[2], employee[3], employee[4], stripped_date)
+  new_employee_time_card=Employee(employee[1], employee[2]) #, employee[3], employee[4], stripped_date)
   global_employee_time_cards.append(new_employee_time_card)
 
 for invoice in temp_invoice_data:
 #  print invoice
-  new_invoice=Invoice(invoice[2], invoice[1], invoice[3].lstrip("'"), invoice[4], invoice[5], invoice[6], invoice[7], invoice[8], invoice[9], invoice[10])
+  new_invoice=Invoice(invoice[2], invoice[1], invoice[3].lstrip("'"), invoice[4], invoice[5], invoice[6], invoice[7], invoice[8], invoice[9], invoice[10], invoice[11])
   global_invoice_array.append(new_invoice)
 
 
@@ -109,22 +110,22 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
   #
     for invoice in unfiltered_invoice_array:
 #      print int(invoice.date[5:7]), invoice.date, str(current.month)
-#      if str(int(invoice.date[5:7]))==str(current.month):
+      if str(int(invoice.date[5:7]))==str(current.month):
         invoice_array.append(invoice)
     for employee in unfiltered_employee_time_cards:
-      if str(int(employee.date[5:7]))==str(current.month):
-        employee_time_cards.append(employee)
+#      if str(int(employee.date[5:7]))==str(current.month):
+      employee_time_cards.append(employee)
   elif year_or_month=="year":
     label_prefix="Jan-"+month
     save_prefix="/var/www/bluemtn/YTD-"
     extra_save=save_prefix+month
     for invoice in unfiltered_invoice_array:
 #      print invoice.date[0:4], invoice.date, current.year
-      if str(invoice.date[0:4])==str(current.year):
+      if str(int(invoice.date[0:4]))==str(current.year):
         invoice_array.append(invoice)
     for employee in unfiltered_employee_time_cards:
-      if str(employee.date[0:4])==str(current.year):
-        employee_time_cards.append(employee)
+#      if str(employee.date[0:4])==str(current.year):
+      employee_time_cards.append(employee)
  
 #  print invoice_array
 #  print employee_time_cards
@@ -139,6 +140,7 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
   callbacks={}
   service_agreements={}
   average_rev={}
+  no_money={}
   # Finds all unique employee names and adds them to the appropriate hash, which were created above
   for employee in employee_time_cards:
 #    print employee.employee_name, "finitio"
@@ -147,6 +149,7 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
     callbacks[employee.employee_name]=0
     service_agreements[employee.employee_name]=0
     average_rev[employee.employee_name]=0
+    no_money[employee.employee_name]=0
   #print average_rev  
 
   # Appends the invoice numbers to the right employee who worked on the invoice, making a list of invoices per employee as a hash
@@ -166,11 +169,15 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
         if invoice.callback=="yes":
           callbacks[employee.employee_name]+=1
         average_rev[employee.employee_name]=(total_revenue[employee.employee_name])/len(employee_invoices[employee.employee_name])
+        if invoice.no_money=="yes":
+          no_money[employee.employee_name]+=1
         #print employee_invoices[employee.employee_name], len(employee_invoices[employee.employee_name])
   #    else:
   #      create error file saying data doesnt match
   #print average_rev
 
+#  print no_money.keys()
+#  print no_money.values()
 #  print "revenue", total_revenue.keys(), total_revenue.values()
 #  print "callbacks", callbacks.keys(), callbacks.values()
 #  print "agreemengs", service_agreements.keys(), service_agreements.values()
@@ -180,6 +187,8 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
   graph(callbacks.keys(), callbacks.values(), len(callbacks.keys()), "Callbacks", label_prefix+" Callbacks\nper Employee", save_prefix+"Callbacks", "no", extra_save+"Callbacks")
   graph(service_agreements.keys(), service_agreements.values(), len(service_agreements.keys()), "Service Agreements", label_prefix+" Svc\n Agreements per Employee", save_prefix+"Agreements", "no", extra_save+"Agreements")
   graph(average_rev.keys(), average_rev.values(), len(average_rev.keys()), "Revenue Per Invoice", label_prefix+" Revenues Average", save_prefix+"Averages", "yes", extra_save+"Averages")
+  graph(no_money.keys(), no_money.values(), len(no_money.keys()), "No Money Calls", label_prefix+" No Money Calls", save_prefix+"NoMoney", "no", extra_save+"NoMoney")
+
 
 def graph(x_keys, bar_values, number, y_label, graph_title, save_name, has_dollars, old_records_save_name):
   
