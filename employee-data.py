@@ -40,16 +40,20 @@ invoice_data=[]
 
 
 # The following for-loop removes None values and empty values, which show up under certain unknown circumstances.
+# it uses x[0] and x[1] because I noticed sometimes one or the other might have a value in it but the rest of the 
+# column wouldn't. 
 for x in employee_time:
   if x[0] != None and x[1] != None and x[0]!="" and x[1]!="":
     time_row_data.append(x)
 
+# This for-loop does the same for invoices.
 for item in invoice_row_data:
   if item[0] != None and item[1] != None and item[0]!="" and item[1]!="":
     temp_invoice_data.append(item)
 
 
-# Create Invoice class so you can instantiate a new invoice and not have to worry with things like "invoice[3]" to pull values
+# Classes prevent you from having to do unreadable shit in the code like "if invoice[3] ==". Now you can
+# do "if invoice.date == <somedate>" or "if invoice.amount == <somenumber>". Much more readable
 class Invoice:
   def __init__(self, invoice_number, customer_name, date, lead, amount, agreements_sold, service_type, callback, callback_date, callback_notes, no_money):
     self.invoice_number=int(invoice_number) #converts invoice_number data to integer, because it's imported as a string
@@ -64,7 +68,6 @@ class Invoice:
     self.callback_notes=callback_notes
     self.no_money=no_money 
 
-# Create Employee class so you can instantiate employee time records without worryiing about things like "employee[5]" to pull values
 class Employee:
   def __init__(self, employee_name, invoice_number): #, hours_sold, hours_billed, date):
     self.employee_name=employee_name
@@ -74,16 +77,16 @@ class Employee:
 #    self.date=date
 
 # The following two for loops iterate over the data we first pulled from the spreadsheet, and creates
-# an array of employee time cards and an array of invoices, that will let us call invoice[3].customer_name, etc
+# an array of employee time cards and an array of invoices., that will let us call invoice[3].customer_name, etc
 for employee in time_row_data:
 #  print employee
-  stripped_date=employee[5].lstrip("'")
+  stripped_date=employee[5].lstrip("'") # need to call .lstrip because of the way Google internally handles its data recognition. 
   new_employee_time_card=Employee(employee[1], employee[2]) #, employee[3], employee[4], stripped_date)
   global_employee_time_cards.append(new_employee_time_card)
 
 for invoice in temp_invoice_data:
 #  print invoice
-  new_invoice=Invoice(invoice[2], invoice[1], invoice[3].lstrip("'"), invoice[4], invoice[5], invoice[6], invoice[7], invoice[8], invoice[9], invoice[10], invoice[11])
+  new_invoice=Invoice(invoice[2], invoice[1], invoice[3].lstrip("'"), invoice[4], invoice[5], invoice[6], invoice[7], invoice[8], invoice[9], invoice[10], invoice[11]) #again, call .lstrip because the ' is used for string handling internally with Google data. It messes up parsing here.
   global_invoice_array.append(new_invoice)
 
 
