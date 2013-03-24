@@ -23,7 +23,7 @@ invoice_row_data = invoice_sheet.get_all_values()
 #print employee_time
 #print invoice_row_data
 
-#delete first entry in "invoice_list" and "employee_time" because it's just header information
+#delete first entry in "invoice_list" and "employee_time" because it's just header information, ie "employee name", etc.
 del invoice_row_data[0]
 del employee_time[0]
 #print invoice_row_data[0]
@@ -39,22 +39,14 @@ temp_invoice_data=[]
 invoice_data=[]
 
 
-# This iterates through to add *all* rows in the time sheet spreadsheet to a temporary array
-# It's temporary so that we can remove "None" values, which are showing up for some reason
-for i in employee_time:
-  if i[0]!="" and i[1]!="":
-    temp_time_row_data.append(i)
-
-# This adds only rows that are not filled with "None" data to the time_row_data list.
-for x in temp_time_row_data:
+# The following for-loop removes None values and empty values, which show up under certain unknown circumstances.
+for x in employee_time:
   if x[0] != None and x[1] != None and x[0]!="" and x[1]!="":
-   time_row_data.append(x)
-
+    time_row_data.append(x)
 
 for item in invoice_row_data:
   if item[0] != None and item[1] != None and item[0]!="" and item[1]!="":
     temp_invoice_data.append(item)
-
 
 
 # Create Invoice class so you can instantiate a new invoice and not have to worry with things like "invoice[3]" to pull values
