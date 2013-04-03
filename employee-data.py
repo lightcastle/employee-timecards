@@ -23,7 +23,7 @@ invoice_row_data = invoice_sheet.get_all_values()
 #print employee_time
 #print invoice_row_data
 
-#delete first entry in "invoice_list" and "employee_time" because it's just header information, ie "employee name", etc.
+#delete first entry in "invoice_list" and "employee_time" because it's just header information
 del invoice_row_data[0]
 del employee_time[0]
 #print invoice_row_data[0]
@@ -39,21 +39,25 @@ temp_invoice_data=[]
 invoice_data=[]
 
 
-# The following for-loop removes None values and empty values, which show up under certain unknown circumstances.
-# it uses x[0] and x[1] because I noticed sometimes one or the other might have a value in it but the rest of the 
-# column wouldn't. 
-for x in employee_time:
-  if x[0] != None and x[1] != None and x[0]!="" and x[1]!="":
-    time_row_data.append(x)
+# This iterates through to add *all* rows in the time sheet spreadsheet to a temporary array
+# It's temporary so that we can remove "None" values, which are showing up for some reason
+for i in employee_time:
+  if i[0]!="" and i[1]!="":
+    temp_time_row_data.append(i)
 
-# This for-loop does the same for invoices.
+# This adds only rows that are not filled with "None" data to the time_row_data list.
+for x in temp_time_row_data:
+  if x[0] != None and x[1] != None and x[0]!="" and x[1]!="":
+   time_row_data.append(x)
+
+
 for item in invoice_row_data:
   if item[0] != None and item[1] != None and item[0]!="" and item[1]!="":
     temp_invoice_data.append(item)
 
 
-# Classes prevent you from having to do unreadable shit in the code like "if invoice[3] ==". Now you can
-# do "if invoice.date == <somedate>" or "if invoice.amount == <somenumber>". Much more readable
+
+# Create Invoice class so you can instantiate a new invoice and not have to worry with things like "invoice[3]" to pull values
 class Invoice:
   def __init__(self, invoice_number, customer_name, date, lead, amount, agreements_sold, service_type, callback, callback_date, callback_notes, no_money):
     self.invoice_number=int(invoice_number) #converts invoice_number data to integer, because it's imported as a string
@@ -68,6 +72,7 @@ class Invoice:
     self.callback_notes=callback_notes
     self.no_money=no_money 
 
+# Create Employee class so you can instantiate employee time records without worryiing about things like "employee[5]" to pull values
 class Employee:
   def __init__(self, employee_name, invoice_number): #, hours_sold, hours_billed, date):
     self.employee_name=employee_name
@@ -77,24 +82,16 @@ class Employee:
 #    self.date=date
 
 # The following two for loops iterate over the data we first pulled from the spreadsheet, and creates
-# an array of employee time cards and an array of invoices., that will let us call invoice[3].customer_name, etc
+# an array of employee time cards and an array of invoices, that will let us call invoice[3].customer_name, etc
 for employee in time_row_data:
 #  print employee
-<<<<<<< HEAD
   stripped_date=employee[5].lstrip("'")
-=======
-  stripped_date=employee[5].lstrip("'") # need to call .lstrip because of the way Google internally handles its data recognition. 
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
   new_employee_time_card=Employee(employee[1], employee[2]) #, employee[3], employee[4], stripped_date)
   global_employee_time_cards.append(new_employee_time_card)
 
 for invoice in temp_invoice_data:
 #  print invoice
-<<<<<<< HEAD
   new_invoice=Invoice(invoice[2], invoice[1], invoice[3].lstrip("'"), invoice[4], invoice[5], invoice[6], invoice[7], invoice[8], invoice[9], invoice[10], invoice[11])
-=======
-  new_invoice=Invoice(invoice[2], invoice[1], invoice[3].lstrip("'"), invoice[4], invoice[5], invoice[6], invoice[7], invoice[8], invoice[9], invoice[10], invoice[11]) #again, call .lstrip because the ' is used for string handling internally with Google data. It messes up parsing here.
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
   global_invoice_array.append(new_invoice)
 
 
@@ -113,7 +110,6 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
     save_prefix="/var/www/bluemtn/YTD-"
     extra_save=save_prefix+month
     for invoice in unfiltered_invoice_array:
-<<<<<<< HEAD
 #      print invoice.date[0:4], invoice.date, current.year
       if str(int(invoice.date[0:4]))==str(current.year):
         invoice_array.append(invoice)
@@ -128,25 +124,9 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
     for invoice in unfiltered_invoice_array:
 #      print str(int(invoice.date[5:7])), str(current.month), invoice.date
       if str(int(invoice.date[5:7]))==str(current.month):
-=======
-#      print int(invoice.date[5:7]), invoice.date, str(current.month)
-      if str(int(invoice.date[5:7]))==str(current.month):
-        invoice_array.append(invoice)
-    for employee in unfiltered_employee_time_cards:
-#      if str(int(employee.date[5:7]))==str(current.month):
-      employee_time_cards.append(employee)
-  elif year_or_month=="year":
-    label_prefix="Jan-"+month
-    save_prefix="/var/www/bluemtn/YTD-"
-    extra_save=save_prefix+month
-    for invoice in unfiltered_invoice_array:
-#      print invoice.date[0:4], invoice.date, current.year
-      if str(int(invoice.date[0:4]))==str(current.year):
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
         invoice_array.append(invoice)
         monthly_invoice_array.append(invoice)
     for employee in unfiltered_employee_time_cards:
-<<<<<<< HEAD
       employee_time_cards.append(employee) # a hash of objects, each of which consists of an employee name and an invoice
 
     for invoice in monthly_invoice_array:
@@ -160,11 +140,6 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
 
 
 
-=======
-#      if str(employee.date[0:4])==str(current.year):
-      employee_time_cards.append(employee)
- 
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
 #  print invoice_array
 #  print employee_time_cards
 
@@ -180,10 +155,7 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
   service_agreements={}
   average_rev={}
   no_money={}
-<<<<<<< HEAD
   monthly_average_rev={}
-=======
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
   # Finds all unique employee names and adds them to the appropriate hash, which were created above
   for employee in employee_time_cards:
 #    print employee.employee_name, "finitio"
@@ -232,10 +204,6 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
         average_rev[employee.employee_name]=(total_revenue[employee.employee_name])/len(employee_invoices[employee.employee_name])
         if invoice.callback=="yes":
           callbacks[employee.employee_name]+=1
-<<<<<<< HEAD
-=======
-        average_rev[employee.employee_name]=(total_revenue[employee.employee_name])/len(employee_invoices[employee.employee_name])
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
         if invoice.no_money=="yes":
           no_money[employee.employee_name]+=1
         #print employee_invoices[employee.employee_name], len(employee_invoices[employee.employee_name])
@@ -254,11 +222,7 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
   graph(total_revenue.keys(), total_revenue.values(), len(total_revenue.keys()), "Revenue", label_prefix+" Revenues\nper Employee", save_prefix+"Revenues", "yes", extra_save+"Revenues")
   graph(callbacks.keys(), callbacks.values(), len(callbacks.keys()), "Callbacks", label_prefix+" Callbacks\nper Employee", save_prefix+"Callbacks", "no", extra_save+"Callbacks")
   graph(service_agreements.keys(), service_agreements.values(), len(service_agreements.keys()), "Service Agreements", label_prefix+" Svc\n Agreements per Employee", save_prefix+"Agreements", "no", extra_save+"Agreements")
-<<<<<<< HEAD
   graph(average_rev.keys(), average_rev.values(), len(average_rev.keys()), "Revenue Per Invoice", label_prefix+" Revenues Average", save_prefix+"Averages", "yes", extra_save+"Averages-wrongmonthly")
-=======
-  graph(average_rev.keys(), average_rev.values(), len(average_rev.keys()), "Revenue Per Invoice", label_prefix+" Revenues Average", save_prefix+"Averages", "yes", extra_save+"Averages")
->>>>>>> d1b136d59796b298ba3616fb55b302339401320b
   graph(no_money.keys(), no_money.values(), len(no_money.keys()), "No Money Calls", label_prefix+" No Money Calls", save_prefix+"NoMoney", "no", extra_save+"NoMoney")
 
 
