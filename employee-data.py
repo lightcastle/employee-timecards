@@ -123,7 +123,7 @@ def filter_data_by_date_and_graph(year_or_month, unfiltered_invoice_array, unfil
     extra_save=save_prefix+month
     for invoice in unfiltered_invoice_array:
 #      print str(int(invoice.date[5:7])), str(current.month), invoice.date
-      if str(int(invoice.date[5:7]))==str(current.month):
+      if str(int(invoice.date[5:7]))==str(current.month)  and str(int(invoice.date[0:4])) == str(current.year):
         invoice_array.append(invoice)
         monthly_invoice_array.append(invoice)
     for employee in unfiltered_employee_time_cards:
